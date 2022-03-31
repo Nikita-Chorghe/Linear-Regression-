@@ -1,0 +1,528 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[122]:
+
+
+# Bharath Tej Chinimilli(BXC200031)
+# Nikita Maruti Chorghe (NMC210000)
+
+
+# In[60]:
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt 
+import seaborn as sns
+import warnings
+import math
+warnings.simplefilter(action='ignore')
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score, mean_squared_error
+
+
+# In[108]:
+
+
+class gradient_descent():
+    
+    def __init__(self,X, Y):
+        self.X = X
+        self.Y= Y
+    
+    #Train the model
+    def Linear_model(self, max_iter = 0, learning_rate=0.0065, Y_intercept =True):
+        """
+        X - Independent attributes
+        Y - Target attribute
+        learning rate - at the rate with which you want to update the weights(default value is 0.001)
+        max_iter - maximum times the weights can be updated
+        bias - whether you want to have a bias value or not(default value True) 
+        
+        returns bias and weights
+        
+        """
+        # The learning Rate
+        # The number of iterations to perform gradient descent
+        np.random.seed(42)
+        n = float(len(X)) # Number of elements in X
+        w = np.random.randn(1, len(X.columns))
+        w0 = np.random.randn(1)
+        old_mse=0.0
+        new_mse=pow(10.0,9)
+        mse = []
+        # Performing Gradient Descent
+        
+        if(max_iter == 0):
+            if (Y_intercept == True):
+                while(abs(old_mse-new_mse) >0.00000000001): 
+                    Y_pred = w.dot(X.to_numpy().transpose()) + w0 # The current predicted value of Y
+                    old_mse =new_mse
+                    new_mse = (1/n)*pow((Y_pred - Y.to_numpy()),2).sum()
+                    mse.append((1/n)*pow((Y_pred - Y.to_numpy()),2).sum())
+                    #update the weights using partial derivative of the error
+                    D_w = (2/n)*( Y_pred - Y.to_numpy()).dot(X.to_numpy()) 
+                    D_w0 =(2/n)*(Y_pred - Y.to_numpy()).sum()
+
+                    w = w - D_w*learning_rate
+                    w0 = w0 - D_w0*learning_rate
+
+            else:
+                while(abs(old_mse-new_mse) >0.00000000001): 
+                    Y_pred = w.dot(X.to_numpy().transpose()) # The current predicted value of Y
+                    old_mse =new_mse
+                    new_mse = (1/n)*pow((Y_pred - Y.to_numpy()),2).sum()
+                    mse.append(new_mse)
+                    #update the weights using partial derivative of the error
+                    D_w = (2/n)*( Y_pred - Y.to_numpy()).dot(X.to_numpy()) 
+
+
+                    w = w - D_w*learning_rate
+        else:
+            if (Y_intercept == True):
+                for i in range(max_iter): 
+                    Y_pred = w.dot(X.to_numpy().transpose()) + w0 # The current predicted value of Y
+                    new_mse = (1/n)*pow((Y_pred - Y.to_numpy()),2).sum()
+                    mse.append((1/n)*pow((Y_pred - Y.to_numpy()),2).sum())
+                    
+                    #update the weights using partial derivative of the error
+                    D_w = (2/n)*( Y_pred - Y.to_numpy()).dot(X.to_numpy()) 
+                    D_w0 =(2/n)*(Y_pred - Y.to_numpy()).sum()
+
+                    w = w - D_w*learning_rate
+                    w0 = w0 - D_w0*learning_rate
+
+            else:
+                for i in range(max_iter): 
+                    Y_pred = w.dot(X.to_numpy().transpose()) # The current predicted value of Y
+                    new_mse = (1/n)*pow((Y_pred - Y.to_numpy()),2).sum()
+                    mse.append(new_mse)
+                    
+                    #update the weights using partial derivative of the error
+                    D_w = (2/n)*( Y_pred - Y.to_numpy()).dot(X.to_numpy()) 
+
+
+                    w = w - D_w*learning_rate
+
+
+        print("r2 score is ",r2_score(Y.to_numpy(), Y_pred.flatten()))  
+        plt.scatter(Y, Y_pred)
+        plt.xlabel("Y_train")
+        plt.ylabel("pred")
+        plt.show()
+        
+        plt.scatter([i for i in range(len(mse))], mse)
+        plt.xlabel("iterations")
+        plt.ylabel("mse")
+        plt.show()
+        
+        print("bias is ", w0)
+        print("weight is ", w)
+    
+        return [w0, w]
+    
+    
+    # model prediction
+    def predict(self,w0, w1, X_test, Y_test):
+        #hypothesis
+        Y_pred = w.dot(X_test.to_numpy().transpose()) + w0
+        n = float(len(X_test))
+        new_mse = (1/n)*pow((Y_pred - Y_test.to_numpy()),2).sum()
+        print("r2 score is ",r2_score(Y_test.to_numpy(), Y_pred.flatten()))  
+        print("mse is ", new_mse)
+        print("RMSE is ", math.sqrt(new_mse))
+        plt.scatter(Y_test, Y_pred)
+        plt.xlabel("Y_test")
+        plt.ylabel("pred")
+        plt.show()
+        
+        
+
+
+# In[62]:
+
+
+url = "https://raw.githubusercontent.com/bharathtej/UCI-CBM-Dataset/main/data.txt"
+result = pd.read_fwf(url)
+
+
+# In[63]:
+
+
+result.columns = ['lp', 'v [knots]','GTT [kN m]','GTn [rpm]', 'GGn [rpm]', 'Ts [kN]', 'Tp [kN]', 'T48 [C]', 'T1 [C]', 'T2 [C]', 'P48 [bar]', 'P1 [bar]', 'P2 [bar]', 'Pexh [bar]', 'TIC [%]', 'mf [kg/s]', 'GT Compressor decay state coefficient', 'GT Turbine decay state coefficient']
+
+
+# In[64]:
+
+
+result.head(5)
+
+
+# In[65]:
+
+
+result.describe()
+
+
+# In[66]:
+
+
+type(result)
+
+
+# In[67]:
+
+
+result.isnull().sum()
+
+
+# In[68]:
+
+
+import matplotlib.pyplot as plt 
+import seaborn as sns
+sns.set(rc={'figure.figsize':(11.7,8.27)})
+sns.distplot(result['GTT [kN m]'], bins=30)
+plt.show()
+
+
+# In[69]:
+
+
+sns.set(rc={'figure.figsize':(11.7,8.27)})
+sns.distplot(result['GTn [rpm]'], bins=30)
+plt.show()
+
+
+# In[70]:
+
+
+correlation_matrix = result.corr().round(2)
+
+
+# In[71]:
+
+
+correlation_matrix
+
+
+# In[524]:
+
+
+sns.pairplot(result)
+plt.show()
+
+
+# In[72]:
+
+
+result.drop(['T1 [C]', 'P1 [bar]'], axis=1, inplace =True)
+
+
+# In[73]:
+
+
+# find correlation between all attributes
+correlation_matrix = result.corr().round(2)
+correlation_matrix
+
+
+# In[74]:
+
+
+sns.heatmap(data=correlation_matrix, annot=True)
+
+
+# In[75]:
+
+
+#check for any null values
+result.isnull().sum()
+
+
+# In[76]:
+
+
+#divide the dataset into independent attributes and target attribute
+
+
+X = result[["lp", "v [knots]", "GTT [kN m]", "GTn [rpm]", "GGn [rpm]","Ts [kN]", "Tp [kN]", "T48 [C]", "T2 [C]", "P48 [bar]", "P2 [bar]","TIC [%]"]]
+Y = result['GT Compressor decay state coefficient']
+
+
+# In[77]:
+
+
+# Standardize the independent attributes so these can be in same range of target attribute
+
+result['GTT [kN m]'] = (result['GTT [kN m]']-result['GTT [kN m]'].mean())/result['GTT [kN m]'].std()
+
+
+# In[78]:
+
+
+result['GTn [rpm]'] = (result['GTn [rpm]']-result['GTn [rpm]'].mean())/result['GTn [rpm]'].std()
+
+
+# In[79]:
+
+
+result['GGn [rpm]'] = (result['GGn [rpm]']-result['GGn [rpm]'].mean())/result['GGn [rpm]'].std()
+
+
+# In[80]:
+
+
+result['Ts [kN]'] = (result['Ts [kN]']-result['Ts [kN]'].mean())/result['Ts [kN]'].std()
+
+
+# In[81]:
+
+
+result['Tp [kN]'] = (result['Tp [kN]']-result['Tp [kN]'].mean())/result['Tp [kN]'].std()
+
+
+# In[82]:
+
+
+result['T48 [C]'] = (result['T48 [C]']-result['T48 [C]'].mean())/result['T48 [C]'].std()
+
+
+# In[83]:
+
+
+result['T2 [C]'] = (result['T2 [C]']-result['T2 [C]'].mean())/result['T2 [C]'].std()
+
+
+# In[84]:
+
+
+result['P48 [bar]'] = (result['P48 [bar]']-result['P48 [bar]'].mean())/result['P48 [bar]'].std()
+
+
+# In[85]:
+
+
+result['P2 [bar]'] = (result['P2 [bar]']-result['P2 [bar]'].mean())/result['P2 [bar]'].std()
+
+
+# In[86]:
+
+
+result['TIC [%]'] = (result['TIC [%]']-result['TIC [%]'].mean())/result['TIC [%]'].std()
+result.head()
+
+
+# In[87]:
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from sklearn.preprocessing import StandardScaler
+s = StandardScaler()
+X = pd.DataFrame(s.fit(X).fit_transform(X))
+
+
+# In[88]:
+
+
+result.head(15)
+
+
+# In[89]:
+
+
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.1, random_state=5)
+print(X_train.shape)
+print(X_test.shape)
+print(Y_train.shape)
+print(Y_test.shape)
+
+
+# In[532]:
+
+
+model = gradient_descent(X_train, Y_train)
+w0, w = model.Linear_model(1000000)
+
+
+# In[535]:
+
+
+model.predict(w0, w, X_test, Y_test)
+
+
+# In[539]:
+
+
+model = gradient_descent(X_train, Y_train)
+w0, w = model.Linear_model(10000)
+
+
+# In[540]:
+
+
+model.predict(w0, w, X_test, Y_test)
+
+
+# In[541]:
+
+
+X = result[["lp", "v [knots]", "GTT [kN m]", "GTn [rpm]", "GGn [rpm]","Ts [kN]", "P2 [bar]","TIC [%]"]]
+Y = result['GT Compressor decay state coefficient']
+
+
+# In[542]:
+
+
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.1, random_state=5)
+print(X_train.shape)
+print(X_test.shape)
+print(Y_train.shape)
+print(Y_test.shape)
+
+
+# In[551]:
+
+
+model = gradient_descent(X_train, Y_train)
+w0, w = model.Linear_model(10000, 0.003)
+
+
+# In[552]:
+
+
+model.predict(w0, w, X_test, Y_test)
+
+
+# In[560]:
+
+
+model = gradient_descent(X_train, Y_train)
+w0, w = model.Linear_model(10000, 0.003)
+
+
+# In[561]:
+
+
+w0, w = model.Linear_model(100000, 0.003)
+
+
+# In[562]:
+
+
+model.predict(w0, w, X_test, Y_test)
+
+
+# In[564]:
+
+
+w0, w = model.Linear_model(1000000, 0.003)
+
+
+# In[565]:
+
+
+model.predict(w0, w, X_test, Y_test)
+
+
+# In[451]:
+
+
+model = gradient_descent(X_train, Y_train)
+w0, w = model.Linear_model(1000000)
+
+
+# In[452]:
+
+
+model.predict(w0, w, X_test, Y_test)
+
+
+# In[95]:
+
+
+model = gradient_descent(X_train, Y_train)
+w0, w = model.Linear_model(learning_rate=0.0038)
+
+
+# In[100]:
+
+
+model.predict(w0,w, X_test, Y_test)
+        
+
+
+# In[101]:
+
+
+X = result[["lp", "v [knots]", "GTT [kN m]", "GTn [rpm]", "GGn [rpm]","Ts [kN]", "Tp [kN]", "T48 [C]", "T2 [C]"]]
+Y = result['GT Compressor decay state coefficient']
+
+
+# In[102]:
+
+
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.1, random_state=5)
+print(X_train.shape)
+print(X_test.shape)
+print(Y_train.shape)
+print(Y_test.shape)
+
+
+# In[103]:
+
+
+model = gradient_descent(X_train, Y_train)
+w0, w = model.Linear_model(10000, 0.003)
+
+
+# In[104]:
+
+
+model.predict(w0,w, X_test, Y_test)
+
+
+# In[105]:
+
+
+model = gradient_descent(X_train, Y_train)
+w0, w = model.Linear_model(100000, 0.003)
+
+
+# In[106]:
+
+
+model.predict(w0,w, X_test, Y_test)
+
+
+# In[113]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
